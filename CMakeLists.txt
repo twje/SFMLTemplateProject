@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(SFMLTemplateProject)
+option(PRODUCTION_BUILD "Make this a production build" OFF)
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+else()
+	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+endif()
+
+project(SFMLTemplate)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -10,6 +18,7 @@ include(FetchContent)
 
 # Add SFML dependency
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
+
 FetchContent_Declare(SFML
     GIT_REPOSITORY https://github.com/SFML/SFML.git
     GIT_TAG master
@@ -32,12 +41,20 @@ add_library(Library STATIC
     ${Headers} # Helps with IDE navigation
 )
 
+if(PRODUCTION_BUILD)
+    target_compile_definitions(Library PUBLIC RESOURCES_PATH="./resources/") 
+    target_compile_definitions(Library PUBLIC PRODUCTION_BUILD=1)
+else()
+    target_compile_definitions(Library PUBLIC RESOURCES_PATH="${CMAKE_CURRENT_SOURCE_DIR}/resources/")
+    target_compile_definitions(Library PUBLIC PRODUCTION_BUILD=0)
+endif()
+
 target_link_libraries(Library PUBLIC 
     sfml-system
     sfml-window
     sfml-graphics
     sfml-audio
-    sfml-network
+    sfml-network    
 )
 
 # Specify include directories

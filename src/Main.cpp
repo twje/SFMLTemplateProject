@@ -1,10 +1,17 @@
+#include "Resources.h"
+
 #include <SFML/Graphics.hpp>
+
+namespace Resources
+{    
+    constexpr char SFMLLogo[] = "1200px-SFML2.png";
+}
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(sf::Vector2u(200, 200)), "SFML Template Project");
-    sf::CircleShape shape(100.f);
-    shape.setFillColor(sf::Color::Green);
+    sf::RenderWindow window(sf::VideoMode(sf::Vector2u(800, 600)), "SFML Template Project");
+    sf::Sprite logo(GetTexture(Resources::SFMLLogo));
+    logo.scale({ 0.5f, 0.5f });
 
     while (window.isOpen())
     {
@@ -16,7 +23,7 @@ int main()
         }
 
         window.clear();
-        window.draw(shape);
+        window.draw(logo);
         window.display();
     }
 
