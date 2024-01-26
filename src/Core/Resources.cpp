@@ -1,18 +1,41 @@
 #include "Resources.h"
+
+// Includes
+//------------------------------------------------------------------------------
+// System
+#include <unordered_map>
+#include <iostream>
 #include <stdexcept>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 //------------------------------------------------------------------------------
-const sf::Texture& GetTexture(const std::string& filename) 
+std::unique_ptr<std::vector<sf::Texture*>> LoadTexuresFromDirectory(const std::string directory)
+{
+    auto textures = std::make_unique<std::vector<sf::Texture*>>();
+
+    for (const auto& entry : fs::directory_iterator(std::string(RESOURCES_PATH) + directory))
+    {
+        std::string filepath = directory + entry.path().filename().generic_string();
+        textures->push_back(&LoadTexture(filepath));
+    }
+    return textures;
+}
+
+//------------------------------------------------------------------------------
+sf::Texture& LoadTexture(const std::string& filename)
 {
     static std::unordered_map<std::string, sf::Texture> textureStore;
+
     auto it = textureStore.find(filename);
-    if (it != textureStore.end()) 
+    if (it != textureStore.end())
     {
         return it->second;
     }
 
     sf::Texture texture;
-    if (!texture.loadFromFile(std::string(RESOURCES_PATH) + filename)) 
+    if (!texture.loadFromFile(std::string(RESOURCES_PATH) + filename))
     {
         throw std::runtime_error("Failed to load texture: " + filename);
     }
@@ -22,17 +45,17 @@ const sf::Texture& GetTexture(const std::string& filename)
 }
 
 //------------------------------------------------------------------------------
-const sf::Font& GetFont(const std::string& filename) 
+const sf::Font& LoadFont(const std::string& filename)
 {
     static std::unordered_map<std::string, sf::Font> fontStore;
     auto it = fontStore.find(filename);
-    if (it != fontStore.end()) 
+    if (it != fontStore.end())
     {
         return it->second;
     }
 
     sf::Font font;
-    if (!font.loadFromFile(std::string(RESOURCES_PATH) + filename)) 
+    if (!font.loadFromFile(std::string(RESOURCES_PATH) + filename))
     {
         throw std::runtime_error("Failed to load font: " + filename);
     }
@@ -42,7 +65,7 @@ const sf::Font& GetFont(const std::string& filename)
 }
 
 //------------------------------------------------------------------------------
-const sf::SoundBuffer& GetSoundBuffer(const std::string& filename)
+const sf::SoundBuffer& LoadSoundBuffer(const std::string& filename)
 {
     static std::unordered_map<std::string, sf::SoundBuffer> soundBufferStore;
     auto it = soundBufferStore.find(filename);
@@ -62,7 +85,7 @@ const sf::SoundBuffer& GetSoundBuffer(const std::string& filename)
 }
 
 //------------------------------------------------------------------------------
-sf::Music& GetMusic(const std::string& filename)
+sf::Music& LoadMusic(const std::string& filename)
 {
     static std::unordered_map<std::string, std::unique_ptr<sf::Music>> musicStore;
 
@@ -80,6 +103,6 @@ sf::Music& GetMusic(const std::string& filename)
 
     auto& storedMusic = *music;
     musicStore[filename] = std::move(music);
-    
+
     return storedMusic;
 }

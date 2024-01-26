@@ -1,8 +1,13 @@
 #pragma once
 
+// Includes
+//------------------------------------------------------------------------------
+// Third party
+#include <SFML/Graphics.hpp>
+
+// System
 #include <functional>
 
-#include <SFML/Graphics.hpp>
 
 //------------------------------------------------------------------------------
 class Timer

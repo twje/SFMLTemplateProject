@@ -25,6 +25,25 @@ FetchContent_Declare(SFML
 )
 FetchContent_MakeAvailable(SFML)
 
+# Add OpenAI
+set(ALSOFT_DLOPEN  OFF CACHE INTERNAL "")
+set(ALSOFT_UTILS OFF CACHE INTERNAL "")
+set(ALSOFT_EXAMPLES OFF CACHE INTERNAL "")
+set(ALSOFT_INSTALL OFF CACHE INTERNAL "")
+set(ALSOFT_INSTALL_CONFIG OFF CACHE INTERNAL "")
+set(ALSOFT_INSTALL_HRTF_DATA OFF CACHE INTERNAL "")
+set(ALSOFT_INSTALL_AMBDEC_PRESETS OFF CACHE INTERNAL "")
+set(ALSOFT_INSTALL_EXAMPLES OFF CACHE INTERNAL "")
+set(ALSOFT_INSTALL_UTILS OFF CACHE INTERNAL "")
+set(ALSOFT_UPDATE_BUILD_VERSION OFF CACHE INTERNAL "")
+
+FetchContent_Declare(
+  openal
+  GIT_REPOSITORY https://github.com/kcat/openal-soft.git
+  GIT_TAG master
+)
+FetchContent_MakeAvailable(openal)
+
 # Gather source files
 file(GLOB_RECURSE Sources 
     "src/*.cpp"
@@ -40,6 +59,21 @@ add_library(Library STATIC
     ${Sources}
     ${Headers} # Helps with IDE navigation
 )
+
+add_dependencies(Library OpenAL)
+
+FetchContent_GetProperties(openal)
+if(openal_POPULATED)
+    # Define the path to the OpenAL DLL
+    set(OPENAL_DLL "${openal_BINARY_DIR}/OpenAL32.dll")
+
+    # Copy the OpenAL DLL to the output directory after building the Library target
+    add_custom_command(TARGET Library POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${OPENAL_DLL}
+        $<TARGET_FILE_DIR:Library>
+    )
+endif()
 
 if(PRODUCTION_BUILD)
     target_compile_definitions(Library PUBLIC RESOURCES_PATH="./resources/") 
