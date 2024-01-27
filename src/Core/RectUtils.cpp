@@ -7,11 +7,18 @@ sf::FloatRect InflateRect(const sf::FloatRect& source, float inflateX, float inf
 {
     sf::FloatRect target = source;
 
-    target.left = source.left - inflateX / 2.0;
+    target.left = source.left - inflateX / 2.0f;
     target.width = source.width + inflateX;
-    target.top = source.top - inflateY / 2.0;
+    target.top = source.top - inflateY / 2.0f;
     target.height = source.height + inflateY;
     return target;
+}
+
+//------------------------------------------------------------------------------
+void MoveRect(sf::FloatRect& rect, const sf::Vector2f& delta)
+{
+    rect.left += delta.x;
+    rect.top += delta.y;
 }
 
 //------------------------------------------------------------------------------

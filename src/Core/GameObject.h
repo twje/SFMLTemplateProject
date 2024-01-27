@@ -8,8 +8,11 @@
 // Third party
 #include <SFML/Graphics.hpp>
 
+// Core
+#include "Transformable.h"
+
 //------------------------------------------------------------------------------
-class GameObject : public sf::Drawable, public sf::Transformable
+class GameObject : public sf::Drawable, public Tranformable
 {
 public:
     virtual ~GameObject() = default;

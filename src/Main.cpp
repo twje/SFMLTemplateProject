@@ -8,6 +8,7 @@
 #include "Core/Resources.h"
 #include "Core/RectUtils.h"
 #include "Core/RandomUtils.h"
+#include "Core/DrawUtils.h"
 
 //------------------------------------------------------------------------------
 constexpr uint32_t WINDOW_WIDTH = 800;
@@ -26,11 +27,12 @@ public:
     SMFLLogo(const sf::Vector2f& position)
         : mSprite(LoadTexture(Resources::SFMLLogo))
         , mSpeed(200.0f)
-    {
-        mSprite.setOrigin(GetRectCenter(mSprite.getLocalBounds()));
-        mSprite.scale({ 0.25f, 0.25f });
-        setPosition(position);
-        mHitbox = GetGlobalBounds();
+    {               
+        SetOrigin(GetRectCenter(mSprite.getLocalBounds()));
+        SetScale({ 0.25f, 0.25f });
+        SetPosition(position);        
+
+        mHitbox = InflateRect(GetGlobalBounds(), -50, -40);        
 
         float dirX = GetRandomIntegerFromList({ -1.0f, 1.0f });
         float dirY = GetRandomIntegerFromList({ -1.0f, 1.0f });
@@ -39,7 +41,7 @@ public:
 
     virtual sf::FloatRect GetGlobalBounds() const override
     {
-        return getTransform().transformRect(mSprite.getGlobalBounds());
+        return GetTransform().transformRect(mSprite.getLocalBounds());
     }
 
     virtual sf::FloatRect GetHitbox() const override
@@ -48,10 +50,9 @@ public:
     }
 
     virtual void Update(const sf::Time& timeslice) override
-    {
+    {                
         sf::Vector2f delta = mDirection * mSpeed * timeslice.asSeconds();
-        mHitbox.left += delta.x;
-        mHitbox.top += delta.y;
+        MoveRect(mHitbox, delta);
 
         if (mHitbox.left < 0)
         {
@@ -70,18 +71,31 @@ public:
             mDirection.y = -mDirection.y;
         }
 
-        sf::Vector2f center = GetRectCenter(mHitbox);
-        setPosition({ center.x, center.y });
+        SyncPositionWithHitbox();
     }
 
     virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const override
     {
         sf::RenderStates statesCopy(states);
-        statesCopy.transform *= getTransform();
+        statesCopy.transform *= GetTransform();
         target.draw(mSprite, statesCopy);
     }
 
+    virtual void SetPosition(const sf::Vector2f& position) override
+    {
+        sf::Transformable& transformable = GetInternaleTransformable();
+        transformable.setPosition(position);
+        mHitbox.left = position.x - mHitbox.width / 2.0f;
+        mHitbox.top = position.y - mHitbox.height / 2.0f;
+    }
+
 private:
+    void SyncPositionWithHitbox()
+    {
+        sf::Vector2f center = GetRectCenter(mHitbox);
+        SetPosition(center);
+    }
+
     sf::Sprite mSprite;
     sf::FloatRect mHitbox;
     sf::Vector2f mDirection;
@@ -103,7 +117,7 @@ int main()
 
     SMFLLogo* logo = manager.CreateGameObject<SMFLLogo>(sf::Vector2f(window.getSize()) / 2.0f);
     logo->AddToGroup(&allSprites);
-    
+
     while (window.isOpen())
     {
         sf::Event event;
@@ -121,7 +135,7 @@ int main()
             timeSinceLastUpdate -= timePerFrame;
             for (GameObject* obj : allSprites)
             {                
-                obj->Update(timePerFrame);                
+                obj->Update(timePerFrame);
             }
             manager.SyncGameObjectChanges();
         }
@@ -130,6 +144,8 @@ int main()
         for (const GameObject* obj : allSprites)
         {
             window.draw(*obj);
+            DrawRect(window, obj->GetGlobalBounds(), sf::Color::Red);
+            DrawRect(window, obj->GetHitbox(), sf::Color::Blue);
         }        
         window.display();
     }
