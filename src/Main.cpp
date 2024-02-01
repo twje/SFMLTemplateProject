@@ -92,8 +92,9 @@ public:
 private:
     void SyncPositionWithHitbox()
     {
+        sf::Transformable& transformable = GetInternaleTransformable();
         sf::Vector2f center = GetRectCenter(mHitbox);
-        SetPosition(center);
+        transformable.setPosition(center);
     }
 
     sf::Sprite mSprite;

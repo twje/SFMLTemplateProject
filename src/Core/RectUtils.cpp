@@ -24,29 +24,29 @@ void MoveRect(sf::FloatRect& rect, const sf::Vector2f& delta)
 //------------------------------------------------------------------------------
 sf::Vector2f GetRectCenter(const sf::FloatRect& rect)
 {
-    return sf::Vector2f(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    return sf::Vector2f(rect.left + rect.width / 2.0f, rect.top + rect.height / 2.0f);
 }
 
 //------------------------------------------------------------------------------
 sf::Vector2f GetRectMidRight(const sf::FloatRect& rect)
 {
-    return sf::Vector2f(rect.left + rect.width, rect.top + rect.height / 2);
+    return sf::Vector2f(rect.left + rect.width, rect.top + rect.height / 2.0f);
 }
 
 //------------------------------------------------------------------------------
 sf::Vector2f GetRectMidLeft(const sf::FloatRect& rect)
 {
-    return sf::Vector2f(rect.left, rect.top + rect.height / 2);
+    return sf::Vector2f(rect.left, rect.top + rect.height / 2.0f);
 }
 
 //------------------------------------------------------------------------------
 sf::Vector2f GetRectMidTop(const sf::FloatRect& rect)
 {
-    return sf::Vector2f(rect.left + rect.width / 2, rect.top);
+    return sf::Vector2f(rect.left + rect.width / 2.0f, rect.top);
 }
 
 //------------------------------------------------------------------------------
 sf::Vector2f GetRectMidBottom(const sf::FloatRect& rect)
 {
-    return sf::Vector2f(rect.left + rect.width / 2, rect.top + rect.height);
+    return sf::Vector2f(rect.left + rect.width / 2.0f, rect.top + rect.height);
 }
