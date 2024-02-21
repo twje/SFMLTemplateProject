@@ -6,9 +6,10 @@
 // Core
 #include "Core/GameObjectManager.h"
 #include "Core/Resources.h"
-#include "Core/RectUtils.h"
 #include "Core/RandomUtils.h"
 #include "Core/DrawUtils.h"
+#include "Core/LayerStack.h"
+#include "Core/RectUtils.h"
 
 //------------------------------------------------------------------------------
 constexpr uint32_t WINDOW_WIDTH = 800;
@@ -39,12 +40,12 @@ public:
         mDirection = { dirX, dirY };
     }
 
-    virtual sf::FloatRect GetGlobalBounds() const override
+    virtual FloatRect GetGlobalBounds() const override
     {
         return GetTransform().transformRect(mSprite.getLocalBounds());
     }
 
-    virtual sf::FloatRect GetHitbox() const override
+    virtual FloatRect GetHitbox() const override
     {
         return mHitbox;
     }
@@ -104,8 +105,55 @@ private:
 };
 
 //------------------------------------------------------------------------------
-int main()
+class Game : public Layer
 {
+public:
+    Game(LayerStack& layerStack, const sf::Vector2u& windowSize)
+        : Layer(layerStack)
+    {
+        mGameView.setSize(sf::Vector2f(windowSize));
+        mGameView.setCenter(sf::Vector2f(windowSize) / 2.0f);
+
+        GameObjectManager& manager = GameObjectManager::Instance();       
+        SMFLLogo* logo = manager.CreateGameObject<SMFLLogo>(sf::Vector2f(windowSize) / 2.0f);
+        mAllSprites.AddGameObject(logo);
+    }
+
+    virtual void Resize(const sf::Vector2f& size) override
+    {
+        mGameView.setSize(size);
+    }
+
+    virtual bool Update(const sf::Time& timeslice) override
+    {
+        for (GameObject* obj : mAllSprites)
+        {
+            obj->Update(timeslice);
+        }
+        return true;
+    }
+
+    virtual bool Draw(sf::RenderWindow& window) override
+    {
+        window.setView(mGameView);
+
+        for (GameObject* obj : mAllSprites)
+        {
+            window.draw(*obj);
+            DrawRect<float>(window, obj->GetHitbox(), sf::Color::Green);
+            DrawRect<float>(window, obj->GetGlobalBounds(), sf::Color::Red);
+        }
+        return true;
+    }
+
+private:
+    Group mAllSprites;
+    sf::View mGameView;
+};
+
+//------------------------------------------------------------------------------
+int main()
+{    
     sf::RenderWindow window(sf::VideoMode(sf::Vector2u(WINDOW_WIDTH, WINDOW_HEIGHT)), "SFML Template Project");
     window.setVerticalSyncEnabled(true);
 
@@ -113,11 +161,8 @@ int main()
     const sf::Time timePerFrame = sf::seconds(1.0f / 60.0f);
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
 
-    GameObjectManager& manager = GameObjectManager::Instance();
-    Group allSprites;
-
-    SMFLLogo* logo = manager.CreateGameObject<SMFLLogo>(sf::Vector2f(window.getSize()) / 2.0f);
-    logo->AddToGroup(&allSprites);
+    LayerStack layerStack;
+    layerStack.PushLayer(std::make_unique<Game>(layerStack, window.getSize()));
 
     while (window.isOpen())
     {
@@ -134,21 +179,13 @@ int main()
         while (timeSinceLastUpdate >= timePerFrame)
         {
             timeSinceLastUpdate -= timePerFrame;
-            for (GameObject* obj : allSprites)
-            {                
-                obj->Update(timePerFrame);
-            }
-            manager.SyncGameObjectChanges();
-        }
+            layerStack.Update(timePerFrame);
+            GameObjectManager::Instance().SyncGameObjectChanges();
 
-        window.clear();
-        for (const GameObject* obj : allSprites)
-        {
-            window.draw(*obj);
-            DrawRect(window, obj->GetGlobalBounds(), sf::Color::Red);
-            DrawRect(window, obj->GetHitbox(), sf::Color::Blue);
-        }        
-        window.display();
+            window.clear();
+            layerStack.Draw(window);
+            window.display();
+        }
     }
 
     return 0;
